@@ -1,3 +1,3 @@
 reset:
-	docker compose down
+	docker compose rm -s -f 
 	docker compose up --build -d 

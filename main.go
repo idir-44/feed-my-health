@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/cenkalti/backoff/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -59,12 +59,7 @@ func initStore() (*sql.DB, error) {
 		err error
 	)
 
-	openDB := func() error {
-		db, err = sql.Open("postgres", pgConnString)
-		return err
-	}
-
-	err = backoff.Retry(openDB, backoff.NewExponentialBackOff())
+	db, err = sql.Open("postgres", pgConnString)
 	if err != nil {
 		return nil, err
 	}

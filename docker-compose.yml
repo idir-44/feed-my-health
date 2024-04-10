@@ -1,7 +1,7 @@
 services:
   feed-my-health:
     depends_on:
-      - roach
+      - db
     build:
       context: .
     container_name: rest-server
@@ -9,31 +9,32 @@ services:
     networks:
       - mynet
     ports:
-      - 80:8080
+      - 8080:8080
     environment:
-      - PGUSER=${PGUSER:-totoro}
+      - PGUSER=${PGUSER:-postgress}
       - PGPASSWORD=${PGPASSWORD:?database password not set}
       - PGHOST=${PGHOST:-db}
-      - PGPORT=${PGPORT:-26257}
+      - PGPORT=${PGPORT:-5432}
       - PGDATABASE=${PGDATABASE:-mydb}
     deploy:
       restart_policy:
         condition: on-failure
-  roach:
-    image: cockroachdb/cockroach:latest-v20.1
-    container_name: roach
-    hostname: db
+  db:
+    image: "postgres:alpine"
+    restart: always
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "mydb"
     networks:
       - mynet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
-      - 26257:26257
-      - 8080:8080
-    volumes:
-      - roach:/cockroach/cockroach-data
-    command: start-single-node --insecure
-
-volumes:
-  roach:
+      - "5432:5432"
 
 networks:
   mynet:

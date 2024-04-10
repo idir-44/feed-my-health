@@ -9,7 +9,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	_ "github.com/lib/pq"
+	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/pgdialect"
+	"github.com/uptrace/bun/driver/pgdriver"
 )
 
 func main() {
@@ -48,26 +50,15 @@ func handleMessage(c echo.Context) error {
 	return c.JSON(http.StatusOK, message{Content: "you requested message route"})
 }
 
-func initStore() (*sql.DB, error) {
-	pgConnString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable", os.Getenv("PGHOST"), os.Getenv("PGPORT"),
+func initStore() (*bun.DB, error) {
+	pgConnString := fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", os.Getenv("PGUSER"), os.Getenv("PGPASSWORD"),
+		os.Getenv("PGPORT"),
 		os.Getenv("PGDATABASE"),
-		os.Getenv("PGUSER"),
-		os.Getenv("PGPASSWORD"))
-
-	var (
-		db  *sql.DB
-		err error
 	)
 
-	db, err = sql.Open("postgres", pgConnString)
-	if err != nil {
-		return nil, err
-	}
+	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(pgConnString)))
 
-	if _, err := db.Exec(
-		"CREATE TABLE IF NOT EXISTS message (value TEXT PRIMARY KEY)"); err != nil {
-		return nil, err
-	}
+	db := bun.NewDB(sqldb, pgdialect.New())
 
 	return db, nil
 

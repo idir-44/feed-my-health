@@ -1,17 +1,12 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
-	"os"
 
+	"github.com/idir-44/feed-my-health/pkg/database"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/uptrace/bun"
-	"github.com/uptrace/bun/dialect/pgdialect"
-	"github.com/uptrace/bun/driver/pgdriver"
 )
 
 func main() {
@@ -20,10 +15,12 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	db, err := initStore()
+	db, err := database.Connect()
 	if err != nil {
 		log.Fatalf("failed to init the store: %s", err)
+		return
 	}
+
 	defer db.Close()
 
 	e.GET("/", func(c echo.Context) error {
@@ -48,18 +45,4 @@ func dumbMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 func handleMessage(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, message{Content: "you requested message route"})
-}
-
-func initStore() (*bun.DB, error) {
-	pgConnString := fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", os.Getenv("PGUSER"), os.Getenv("PGPASSWORD"),
-		os.Getenv("PGPORT"),
-		os.Getenv("PGDATABASE"),
-	)
-
-	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(pgConnString)))
-
-	db := bun.NewDB(sqldb, pgdialect.New())
-
-	return db, nil
-
 }

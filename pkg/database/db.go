@@ -22,12 +22,13 @@ func checkConnection(db *bun.DB) error {
 
 func Connect() (DB, error) {
 
-	pgConnString := fmt.Sprintf("postgres://%s:%s@feed-my-health-db-1:%s/%s?sslmode=disable", os.Getenv("PGUSER"), os.Getenv("PGPASSWORD"),
-		os.Getenv("PGPORT"),
-		os.Getenv("PGDATABASE"),
-	)
-
-	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(pgConnString)))
+	sqldb := sql.OpenDB(pgdriver.NewConnector(
+		pgdriver.WithUser(os.Getenv("PGUSER")),
+		pgdriver.WithAddr(fmt.Sprintf("%s:%s", os.Getenv("PGHOST"), os.Getenv("PGPORT"))),
+		pgdriver.WithDatabase(os.Getenv("PGDATABASE")),
+		pgdriver.WithPassword(os.Getenv("PGPASSWORD")),
+		pgdriver.WithInsecure(true),
+	))
 
 	db := bun.NewDB(sqldb, pgdialect.New())
 

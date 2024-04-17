@@ -1,5 +1,5 @@
 services:
-  feed-my-health:
+  server:
     depends_on:
       - db
     build:

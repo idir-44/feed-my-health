@@ -1,9 +1,9 @@
 start:
-	@docker compose up --build -d 
+	@docker compose -f docker/docker-compose.yml up --build -d 
 
 stop:
-	@docker compose rm -s -v -f 
+	@docker compose -f docker/docker-compose.yml rm -s -v -f 
 
 reset:
-	docker compose rm -s -v -f 
-	docker compose up --build -d 
+	make stop
+	make start 

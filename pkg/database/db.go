@@ -11,16 +11,14 @@ import (
 	"github.com/uptrace/bun/driver/pgdriver"
 )
 
-type DB struct {
-	db *bun.DB
-}
+type DBConnection = bun.DB
 
 func checkConnection(db *bun.DB) error {
 	_, err := db.ExecContext(context.TODO(), "SELECT 1")
 	return err
 }
 
-func Connect() (DB, error) {
+func Connect() (*DBConnection, error) {
 
 	sqldb := sql.OpenDB(pgdriver.NewConnector(
 		pgdriver.WithUser(os.Getenv("PGUSER")),
@@ -33,12 +31,8 @@ func Connect() (DB, error) {
 	db := bun.NewDB(sqldb, pgdialect.New())
 
 	if err := checkConnection(db); err != nil {
-		return DB{}, err
+		return &DBConnection{}, err
 	}
 
-	return DB{db}, nil
-}
-
-func (d DB) Close() {
-	d.db.Close()
+	return db, nil
 }

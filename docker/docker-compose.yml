@@ -5,8 +5,11 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    container_name: rest-server
     hostname: rest-server
+    volumes:
+      - ../cmd:/app/cmd
+      - ../pkg:/app/pkg
+      - ../internal:/app/internal
     networks:
       - mynet
     ports:

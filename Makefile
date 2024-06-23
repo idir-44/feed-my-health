@@ -1,10 +1,18 @@
-EXEC ?=docker compose -f docker/docker-compose.yml exec -e CGO_ENABLED=0 -T docker-server-1
+DOCKER_COMPOSE=docker compose -f docker/docker-compose.yml
 
 start:
-	@docker compose -f docker/docker-compose.yml up --build -d 
+	${DOCKER_COMPOSE} up --build -d 
+	make migration-init
+	make migration-up
 
 stop:
-	@docker compose -f docker/docker-compose.yml rm -s -v -f 
+	${DOCKER_COMPOSE} rm -s -v -f 
+
+restart:
+	${DOCKER_COMPOSE} restart
+
+livereload:
+	git ls-files | entr -c -r -s 'make restart; docker logs -f docker-server-1'
 
 migration-init:
 	docker exec -it docker-server-1 go run ./cmd/migrate/main.go db init
